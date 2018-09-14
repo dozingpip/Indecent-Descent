@@ -105,18 +105,20 @@ func _physics_process(delta):
 	
 	for i in $Area.get_overlapping_bodies():
 		var tile_collided = i.get_parent()
-		if tile_collided.is_in_group("ice"):
-			velocity.x = clamp(velocity.normalized().x * ice_friction, -speed *1.5, speed*1.5)
-			velocity.z = clamp(velocity.normalized().z * ice_friction, -speed *1.5, speed *1.5)
-		elif tile_collided.is_in_group("cracked"):
-			tile_collided.cracking_timer += delta
-			
-			if tile_collided.cracking_timer > 2:
-				tile_collided.queue_free()
-			elif tile_collided.cracking_timer > 1:
-				tile_collided.set_material("res://Materials/cracked_tile1.tres")
-		elif tile_collided.is_in_group("sticky"):
-			velocity/=2
+		if is_on_floor():
+			if tile_collided.is_in_group("ice"):
+				velocity.x = clamp(velocity.normalized().x * ice_friction, -speed *1.5, speed*1.5)
+				velocity.z = clamp(velocity.normalized().z * ice_friction, -speed *1.5, speed *1.5)
+			elif tile_collided.is_in_group("cracked"):
+				tile_collided.cracking_timer += delta
+				
+				if tile_collided.cracking_timer > 2:
+					tile_collided.queue_free()
+				elif tile_collided.cracking_timer > 1:
+					tile_collided.set_material("res://Materials/cracked_tile1.tres")
+			elif tile_collided.is_in_group("sticky"):
+				velocity/=2
+	
 	for i in $Area.get_overlapping_areas():
 		print(i)
 		if i.get_parent().is_in_group("collectible"):

@@ -116,7 +116,7 @@ func new_level():
 	var path = createString("S")
 	buildPath(path, level)
 	var mid = makeWallsAround(level)
-	level.translate(-mid)
+	
 	return level
 	
 
@@ -344,22 +344,26 @@ func makeWallsAround(level):
 		if(child_pos.z > largestZ):
 			largestZ = child_pos.z
 	# center the walls around the level, cut off anything that's too far from this calculated center
-	var midX = floor((smallestX + largestX)/2)
-	smallestX= floor(midX -(width/2))
-	largestX= floor(midX +(width/2))
+	#var midX = (smallestX + width)/2
+#	smallestX= floor(midX -(width/2))
+#	largestX= floor(midX +(width/2))
 
-	var midZ = floor((smallestZ + largestZ)/2)
-	smallestZ= floor(midZ -(length/2))
-	largestZ= floor(midZ +(length/2))
-	var startOfWalls = Vector3(smallestX, 0, smallestZ)
-	var upperRightEdge = Vector3(smallestX, 0, largestZ)
-	var upperLeftEdge = Vector3(largestX, 0, largestZ)
-	var lowerLeftEdge = Vector3(largestX, 0, smallestZ)
+	#var midZ = (smallestZ + length)/2
+#	smallestZ= floor(midZ -(length/2))
+#	largestZ= floor(midZ +(length/2))
+#	var startOfWalls = Vector3(smallestX, 0, smallestZ)
+#	var upperRightEdge = Vector3(smallestX, 0, largestZ)
+#	var upperLeftEdge = Vector3(largestX, 0, largestZ)
+#	var lowerLeftEdge = Vector3(largestX, 0, smallestZ)
+
+	var midX = (smallestX + width) /2
+	var midZ = (smallestZ + length) /2
 
 	var walls = Walls.instance()
+	
 	level.add_child(walls)
-	walls.makeWalls(startOfWalls, lowerLeftEdge, upperLeftEdge, upperRightEdge, wall_height)
-	return Vector3(midX, 0, midZ)
+	walls.makeWalls(smallestX, smallestZ, midX, midZ, wall_height, length, width)
+	level.translate(Vector3(-midX, 0, -midZ))
 
 # spawn enemies on the given level
 #func spawnEnemies(level):

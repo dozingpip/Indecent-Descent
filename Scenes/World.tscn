@@ -19,7 +19,7 @@ script = ExtResource( 2 )
 [node name="Player" parent="Level Generator" index="0" instance=ExtResource( 3 )]
 
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0 )
-_sections_unfolded = [ "Transform" ]
+_sections_unfolded = [ "Collision", "Transform" ]
 
 [node name="PathBuilder" type="Area" parent="Level Generator" index="1"]
 

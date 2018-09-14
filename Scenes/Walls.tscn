@@ -13,9 +13,10 @@ subdivide_depth = 0
 
 extents = Vector3( 1, 1, 1 )
 
-[node name="Walls" type="Spatial"]
+[node name="Walls" type="Spatial" index="0"]
 
 script = ExtResource( 1 )
+_sections_unfolded = [ "Transform" ]
 
 [node name="Wall0" type="MeshInstance" parent="." index="0"]
 
@@ -36,7 +37,6 @@ _sections_unfolded = [ "Transform" ]
 
 [node name="StaticBody" type="StaticBody" parent="Wall0" index="0"]
 
-editor/display_folded = true
 transform = Transform( 0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0 )
 input_ray_pickable = true
 input_capture_on_drag = false
@@ -72,7 +72,6 @@ _sections_unfolded = [ "Transform" ]
 
 [node name="StaticBody" type="StaticBody" parent="Wall1" index="0"]
 
-editor/display_folded = true
 transform = Transform( 0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0 )
 input_ray_pickable = true
 input_capture_on_drag = false
@@ -144,7 +143,6 @@ _sections_unfolded = [ "Transform" ]
 
 [node name="StaticBody" type="StaticBody" parent="Wall3" index="0"]
 
-editor/display_folded = true
 transform = Transform( 0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0 )
 input_ray_pickable = true
 input_capture_on_drag = false
