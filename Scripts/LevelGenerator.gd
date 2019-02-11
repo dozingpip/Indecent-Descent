@@ -3,39 +3,60 @@ extends Node
 var Multimap = load("res://Scripts/Multimap.gd")
 var map = Multimap.new()
 var Tile = load("res://Scenes/Tile.tscn")
+var Gap = load("res://Scenes/Gap.tscn")
 var Collectible = load("res://Scenes/Collectible.tscn")
 var Walls = load("res://Scenes/Walls.tscn")
-var min_path_length = 10
+var min_path_length = 15
 var max_path_length = 20
 var initial_enemy_chance = 0.05
 var enemy_chance
 var forbidden_directions = []
 var has_passed_min = false
-var width = 20
-var length = 20
-var wall_height = 10
-var level_queue_height = 5
+export(int) var width = 20
+export(int) var length = 20
+export(int) var wall_height = 10
+
+var level_queue_height = 6
 var num_level = 0
 var level_queue = []
-
-func _process(delta):
-	if level_queue.size() >= level_queue_height:
-		if ($Player.get_translation().y - level_queue.front().get_translation().y) < -(wall_height *2):
-			delete_One_Add_One_Level()
+var top_y = 0
 
 func _ready():
 	enemy_chance = initial_enemy_chance
+	randomize()
 	map_it()
 	for i in range(level_queue_height):
-		level_queue.push_back(new_level())
+		level_queue.push_back($LevelGenerator.new_level(num_level))
 		num_level+=1
 
-func delete_One_Add_One_Level():
+func queue_Delete_One_Add_One():
 	var dequeued = level_queue.pop_front()
 	
 	dequeued.queue_free()
 	level_queue.push_back(new_level())
-	num_level+=1
+	top_y = level_queue.front().get_translation().y
+	num_level += 1
+	return num_level
+
+func new_level():
+	var level = Spatial.new()
+	add_child(level)
+	level.set_translation(Vector3(0, -(wall_height*num_level), 0))
+	level.name = "Level " + str(num_level)
+	print("\n" +level.name)
+	var tiles = Spatial.new()
+	tiles.name = "tiles"
+	level.add_child(tiles)
+	
+	var path = createString("S")
+	$PathBuilder.set_translation(Vector3(0,0,0))
+	buildPath(path, tiles, width, length)
+	
+	var walls = Walls.instance()
+	level.add_child(walls)
+	walls.makeWalls(wall_height, width, length)
+	shift_to_center(tiles)
+	return level
 
 # adds all the keys/ operators in the grammar (with values and weights) to the multimap
 func map_it():
@@ -107,17 +128,7 @@ func map_it():
 	startOptions.append("nDP")
 	map.append('S', startOptions)
 
-func new_level():
-	var level = Spatial.new()
-	add_child(level)
-	level.set_translation(Vector3(0, -(wall_height*num_level), 0))
-	level.name = "Level " + str(num_level)
-	
-	var path = createString("S")
-	buildPath(path, level)
-	var mid = makeWallsAround(level)
-	
-	return level
+
 	
 
 # return a bool based on whether the string has only characters that correspond to terminal
@@ -265,19 +276,28 @@ func parseIt(string):
 					i+=nextPath
 	return i
 
+func is_within_bounds(x, z, bound_width, bound_length):
+	return (x < (bound_width/2) and x > -(bound_width/2) and z < (bound_length/2) and z > -(bound_length/2))
 # build the path and put the resulting tiles inside of the parent transform
-func buildPath(fullString, parent):
+func buildPath(fullString, parent, width, length):
 	var dir = Vector3(0, 0, 0)
 	var pathStack = []
+	var spawned_locations = []
+	var fails = 0
 	for i in range(fullString.length()):
 		var c = fullString[i]
-
 		if(isTile(c)):
-#			if(c == 'g'):
-#				$PathBuilder.translate(dir)
-			
 			var boxScale = Vector3(0.25, 0.25, 0.25)
-			if $PathBuilder.get_overlapping_bodies().size() < 1:
+			var can_place = false
+			var path_loc = $PathBuilder.get_translation()
+			while not can_place and is_within_bounds(path_loc.x, path_loc.z, width, length):
+				if path_loc in spawned_locations:
+					$PathBuilder.translate(dir)
+					path_loc = $PathBuilder.get_translation()
+				else:
+					can_place = true
+			if can_place:
+				spawned_locations.append($PathBuilder.get_translation())
 				var type = ""
 				match c:
 					'n': type = "normal"
@@ -285,22 +305,27 @@ func buildPath(fullString, parent):
 					'i': type = "ice"
 					's': type = "sticky"
 					'g':
+						$PathBuilder.translate(dir)
+						var gap = Gap.instance()
+						gap.set_translation($PathBuilder.get_translation())
+						parent.add_child(gap)
 						if (i + 1 < fullString.length() && fullString[i + 1] == 'x'):
 							print("SPAWNING GAP COLLECTIBLE")
 							var collectible = Collectible.instance()
 							collectible.set_translation($PathBuilder.get_translation()+Vector3(0, 1, 0))
 							parent.add_child(collectible)
-							$PathBuilder.translate(dir)
 							i+=1
 						else:
 							print("PLACING GAP")
-							$PathBuilder.translate(dir)
+						$PathBuilder.translate(dir)
 				if type != "":
 					var tile = Tile.instance()
 					tile.set_translation($PathBuilder.get_translation())
 					tile.set_type(type)
 					tile.name = type
 					parent.add_child(tile)
+			else:
+				print("couldn't place " + c)
 		else:
 			match c:
 				'u':
@@ -326,15 +351,15 @@ func buildPath(fullString, parent):
 				')':
 					pathStack.pop_front()
 
-# make walls around the given parent object (should hold all the tiles and collectibles generated from build path)
-func makeWallsAround(level):
-	var smallestX = level.get_child(0).get_translation().x
-	var smallestZ = level.get_child(0).get_translation().z
-	var largestX = level.get_child(0).get_translation().x
-	var largestZ = level.get_child(0).get_translation().z
+# shift the tiles to be centered within the walls
+func shift_to_center(tiles):
+	var smallestX = tiles.get_child(0).get_translation().x
+	var smallestZ = tiles.get_child(0).get_translation().z
+	var largestX = tiles.get_child(0).get_translation().x
+	var largestZ = tiles.get_child(0).get_translation().z
 
-	for i in range(level.get_child_count()):
-		var child_pos = level.get_child(i).get_translation()
+	for i in range(tiles.get_child_count()):
+		var child_pos = tiles.get_child(i).get_translation()
 		if(child_pos.x < smallestX):
 			smallestX = child_pos.x
 		if(child_pos.z < smallestZ):
@@ -343,56 +368,40 @@ func makeWallsAround(level):
 			largestX = child_pos.x
 		if(child_pos.z > largestZ):
 			largestZ = child_pos.z
-	# center the walls around the level, cut off anything that's too far from this calculated center
-	#var midX = (smallestX + width)/2
-#	smallestX= floor(midX -(width/2))
-#	largestX= floor(midX +(width/2))
-
-	#var midZ = (smallestZ + length)/2
-#	smallestZ= floor(midZ -(length/2))
-#	largestZ= floor(midZ +(length/2))
-#	var startOfWalls = Vector3(smallestX, 0, smallestZ)
-#	var upperRightEdge = Vector3(smallestX, 0, largestZ)
-#	var upperLeftEdge = Vector3(largestX, 0, largestZ)
-#	var lowerLeftEdge = Vector3(largestX, 0, smallestZ)
-
-	var midX = (smallestX + width) /2
-	var midZ = (smallestZ + length) /2
-
-	var walls = Walls.instance()
 	
-	level.add_child(walls)
-	walls.makeWalls(smallestX, smallestZ, midX, midZ, wall_height, length, width)
-	level.translate(Vector3(-midX, 0, -midZ))
+	var midX = (smallestX + largestX)/2
+
+	var midZ = (smallestZ + largestZ)/2
+
+	tiles.translate(Vector3(-midX, 0, -midZ))
 
 # spawn enemies on the given level
 #func spawnEnemies(level):
 #	var tempEnemyChance = enemyChance
-#	var thisRandom = 0
-#	while((thisRandom = Random.value) < tempEnemyChance):
-#		var wall = Random.Range(0, 3)
+#	var thisRandom = randf()
+#	while(thisRandom < tempEnemyChance):
+#		var wall = (randi()%5) -1
 #		var y = (-wall_height * num_level) + 1
 #		var x = width / 2
 #		var z = length / 2
 #		match wall:
 #			# North wall
 #			0:
-#				x = Random.Range(-width / 2, width / 2)
-#				break
+#				x = rand_range(-width / 2, width / 2)
 #			# East wall
 #			1:
-#				z = Random.Range(-width / 2, width / 2)
-#				break
+#				z = rand_range(-width / 2, width / 2)
 #			# South wall
 #			2:
 #				z = -z
-#				x = Random.Range(-width / 2, width / 2)
-#				break
+#				x = rand_range(-width / 2, width / 2)
 #			# West wall
 #			3:
 #				x = -x
-#				z = Random.Range(-width / 2, width / 2)
+#				z = rand_range(-width / 2, width / 2)
 #		var enemyPos = Vector3(x, y, z)
-#		var enemy = Instantiate(enemyPrefab, enemyPos, Quaternion.identity)
+#		var enemy = Enemy.instance()
+#		enemy.set_translation(enemyPos)
 #		level.add_child(enemy)
 #		tempEnemyChance -= thisRandom
+#		thisRandom = randf()
