@@ -6,6 +6,7 @@ var Tile = load("res://Scenes/Tile.tscn")
 var Gap = load("res://Scenes/Gap.tscn")
 var Collectible = load("res://Scenes/Collectible.tscn")
 var Walls = load("res://Scenes/Walls.tscn")
+var Enemy = load("res://Scenes/Enemy.tscn")
 var min_path_length = 15
 var max_path_length = 20
 var initial_enemy_chance = 0.05
@@ -26,16 +27,17 @@ func _ready():
 	randomize()
 	map_it()
 	for i in range(level_queue_height):
-		level_queue.push_back($LevelGenerator.new_level(num_level))
+		level_queue.push_back(new_level())
 		num_level+=1
 
 func queue_Delete_One_Add_One():
-	var dequeued = level_queue.pop_front()
-	
-	dequeued.queue_free()
-	level_queue.push_back(new_level())
-	top_y = level_queue.front().get_translation().y
-	num_level += 1
+	if level_queue.size() >= level_queue_height:
+		var dequeued = level_queue.pop_front()
+		
+		dequeued.queue_free()
+		level_queue.push_back(new_level())
+		top_y = level_queue.front().get_translation().y
+		num_level += 1
 	return num_level
 
 func new_level():
@@ -43,7 +45,7 @@ func new_level():
 	add_child(level)
 	level.set_translation(Vector3(0, -(wall_height*num_level), 0))
 	level.name = "Level " + str(num_level)
-	print("\n" +level.name)
+#	print("\n" +level.name)
 	var tiles = Spatial.new()
 	tiles.name = "tiles"
 	level.add_child(tiles)
@@ -55,6 +57,8 @@ func new_level():
 	var walls = Walls.instance()
 	level.add_child(walls)
 	walls.makeWalls(wall_height, width, length)
+	spawnEnemies(level)
+	enemy_chance = initial_enemy_chance * sqrt(num_level)
 	shift_to_center(tiles)
 	return level
 
@@ -171,7 +175,7 @@ func createString(key):
 	while(!isKeyFullOfTerminals(key)):
 		key = wrapup(key)
 	
-	print("key: "+str(key)+", length: "+str(pathLength))
+#	print("key: "+str(key)+", length: "+str(pathLength))
 	return key
 
 # once max path length is reached this is called to just make sure that any non-terminal operators
@@ -310,13 +314,14 @@ func buildPath(fullString, parent, width, length):
 						gap.set_translation($PathBuilder.get_translation())
 						parent.add_child(gap)
 						if (i + 1 < fullString.length() && fullString[i + 1] == 'x'):
-							print("SPAWNING GAP COLLECTIBLE")
+#							print("SPAWNING GAP COLLECTIBLE")
 							var collectible = Collectible.instance()
 							collectible.set_translation($PathBuilder.get_translation()+Vector3(0, 1, 0))
 							parent.add_child(collectible)
 							i+=1
 						else:
-							print("PLACING GAP")
+							pass
+#							print("PLACING GAP")
 						$PathBuilder.translate(dir)
 				if type != "":
 					var tile = Tile.instance()
@@ -325,7 +330,8 @@ func buildPath(fullString, parent, width, length):
 					tile.name = type
 					parent.add_child(tile)
 			else:
-				print("couldn't place " + c)
+				pass
+#				print("couldn't place " + c)
 		else:
 			match c:
 				'u':
@@ -376,32 +382,40 @@ func shift_to_center(tiles):
 	tiles.translate(Vector3(-midX, 0, -midZ))
 
 # spawn enemies on the given level
-#func spawnEnemies(level):
-#	var tempEnemyChance = enemyChance
-#	var thisRandom = randf()
-#	while(thisRandom < tempEnemyChance):
-#		var wall = (randi()%5) -1
-#		var y = (-wall_height * num_level) + 1
-#		var x = width / 2
-#		var z = length / 2
-#		match wall:
-#			# North wall
-#			0:
-#				x = rand_range(-width / 2, width / 2)
-#			# East wall
-#			1:
-#				z = rand_range(-width / 2, width / 2)
-#			# South wall
-#			2:
-#				z = -z
-#				x = rand_range(-width / 2, width / 2)
-#			# West wall
-#			3:
-#				x = -x
-#				z = rand_range(-width / 2, width / 2)
-#		var enemyPos = Vector3(x, y, z)
-#		var enemy = Enemy.instance()
-#		enemy.set_translation(enemyPos)
-#		level.add_child(enemy)
-#		tempEnemyChance -= thisRandom
-#		thisRandom = randf()
+func spawnEnemies(level):
+	var tempEnemyChance = enemy_chance
+	var thisRandom = randf()
+#	print("rand " +str(thisRandom) + ", enemychance " + str(tempEnemyChance))
+	while(thisRandom < tempEnemyChance):
+#		print("pew on level " + str(num_level))
+		var wall = (randi()%5) -1
+		var y = 1
+		var x = width / 2
+		var z = length / 2
+		match wall:
+			# North wall
+			0:
+				x = rand_range(-width / 2, width / 2)
+			# East wall
+			1:
+				z = rand_range(-width / 2, width / 2)
+			# South wall
+			2:
+				z = -z
+				x = rand_range(-width / 2, width / 2)
+			# West wall
+			3:
+				x = -x
+				z = rand_range(-width / 2, width / 2)
+		var enemyPos = Vector3(x, y, z)
+		
+		var enemy = Enemy.instance()
+		enemy.num_level = num_level
+		enemy.set_translation(enemyPos)
+		level.add_child(enemy)
+#		for tile in level.get_node("tiles").get_children():
+#			enemy.get_node("RayCast").add_exception(tile)
+#		for wall in level.get_node("Walls").get_children():
+#			enemy.get_node("RayCast").add_exception(wall)
+		tempEnemyChance -= thisRandom
+		thisRandom = randf()

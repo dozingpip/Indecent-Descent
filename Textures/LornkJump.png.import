@@ -7,10 +7,7 @@ path="res://.import/LornkJump.png-2faaa8c1234febaced5b7fb57b52832b.stex"
 [deps]
 
 source_file="res://Textures/LornkJump.png"
-source_md5="3a94a14380baee951af75df212ac17be"
-
 dest_files=[ "res://.import/LornkJump.png-2faaa8c1234febaced5b7fb57b52832b.stex" ]
-dest_md5="3801634fe46a09e4e410dffff175796f"
 
 [params]
 

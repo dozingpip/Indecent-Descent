@@ -2,16 +2,19 @@ extends Node
 
 var score = 0
 var lvlGen
-var num_level = 0
+var num_floor = 0
+
+func game_over():
+	pass
 
 func _ready():
 	lvlGen = $LevelGenerator
 
 func _process(delta):
-	if level_queue.size() >= level_queue_height:
-		if ($Player.get_translation().y - lvlGen.top_y) < -(lvlGen.wall_height *2):
-			num_level = lvlGen.queue_Delete_One_Add_One()
-			get_node("ui/floor").set_text("Floor " + str(num_level))
+	if ($Player.get_translation().y - lvlGen.top_y) < -(lvlGen.wall_height *2):
+		lvlGen.queue_Delete_One_Add_One()
+	num_floor = 2 + (floor(-$Player.get_translation().y / lvlGen.wall_height))
+	get_node("ui/floor").set_text("Floor " + str(num_floor))
 
 func _on_Player_add_point():
 	print("player got a point")

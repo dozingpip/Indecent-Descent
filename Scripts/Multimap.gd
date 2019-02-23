@@ -21,7 +21,6 @@ func evenlyDistributeWeights(key):
 	var keyIndex = keys.find(key)
 	var myValues = values[keyIndex]
 	var length = myValues.size()
-	print("length is: "+ str(length))
 	var new_weights = []
 	for i in range(length):
 		new_weights.append(1/length)

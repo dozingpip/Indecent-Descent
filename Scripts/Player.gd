@@ -33,6 +33,16 @@ enum FloorType{Normal, Ice, Sticky, Cracked, None}
 var standingOn = []
 var velocity = Vector3()
 
+func knockback(direction):
+		knockbackStunTimer = knockbackStunLength
+		knockbackDirection = direction.normalized()
+
+func takeDamage(amount):
+	if(knockbackStunTimer <= 0):
+		health -= amount
+		if (health <= 0):
+			get_tree().get_node("World").game_over()
+
 func _ready():
 	anim_timer = anim_speed
 	knockbackStunTimer = 0
@@ -120,9 +130,12 @@ func _physics_process(delta):
 				velocity/=2
 	
 	for i in $Area.get_overlapping_areas():
-		print(i)
 		if i.get_parent().is_in_group("collectible"):
 			emit_signal("add_point")
 			i.get_parent().queue_free()
-		
-	velocity = move_and_slide(velocity, Vector3(0, 1, 0))
+	
+	if (knockbackStunTimer > 0):
+		translation += knockbackDirection * knockbackSpeed
+		knockbackStunTimer -= delta
+	else:
+		velocity = move_and_slide(velocity, Vector3(0, 1, 0))

@@ -7,10 +7,7 @@ path="res://.import/LornkSpriteSheet.png-a4a80d085b08d0ae292969fc081bda7c.stex"
 [deps]
 
 source_file="res://Textures/LornkSpriteSheet.png"
-source_md5="bff8d77da83a32db3ba482b0b01fbf73"
-
 dest_files=[ "res://.import/LornkSpriteSheet.png-a4a80d085b08d0ae292969fc081bda7c.stex" ]
-dest_md5="994c7bc2e953321f736446e787ac1e6e"
 
 [params]
 

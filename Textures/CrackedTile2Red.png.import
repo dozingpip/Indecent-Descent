@@ -7,10 +7,7 @@ path="res://.import/CrackedTile2Red.png-73ff1caba861828e92ada50187f006b0.stex"
 [deps]
 
 source_file="res://Textures/CrackedTile2Red.png"
-source_md5="8a52df088195cff494af0be92e78a6fc"
-
 dest_files=[ "res://.import/CrackedTile2Red.png-73ff1caba861828e92ada50187f006b0.stex" ]
-dest_md5="2881f27cea85f9e07da012f119dfd414"
 
 [params]
 

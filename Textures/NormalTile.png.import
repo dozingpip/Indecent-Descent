@@ -7,10 +7,7 @@ path="res://.import/NormalTile.png-b12385749b1551bf70b7a97a5332a0c1.stex"
 [deps]
 
 source_file="res://Textures/NormalTile.png"
-source_md5="eb8e739cb16402c9a7a6f5ffd99d24a9"
-
 dest_files=[ "res://.import/NormalTile.png-b12385749b1551bf70b7a97a5332a0c1.stex" ]
-dest_md5="ec91344b5cb6db769446546edeb22289"
 
 [params]
 
