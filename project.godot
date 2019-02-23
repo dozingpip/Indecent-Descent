@@ -14,10 +14,6 @@ config/name="Indecent Descent"
 run/main_scene="res://Scenes/World.tscn"
 config/icon="res://icon.png"
 
-[display]
-
-window/size/fullscreen=true
-
 [group]
 
 NameCasing=false

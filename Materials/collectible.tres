@@ -13,7 +13,7 @@ width = 2048
 
 [resource]
 
-render_priority = 1
+render_priority = 0
 flags_transparent = true
 flags_unshaded = false
 flags_vertex_lighting = false
