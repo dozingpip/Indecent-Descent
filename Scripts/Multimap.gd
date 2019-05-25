@@ -2,7 +2,6 @@ extends Node
 
 func _init():
 	randomize()
-	pass
 
 var keys = []
 var values = []
@@ -23,6 +22,7 @@ func evenlyDistributeWeights(key):
 	var myValues = values[keyIndex]
 	var length = myValues.size()
 	var new_weights = []
+# warning-ignore:unused_variable
 	for i in range(length):
 		new_weights.append(1/length)
 	return new_weights
@@ -32,6 +32,7 @@ func addNewValueToKey(key, newValue, new_weights = null):
 	values[keyIndex].append(newValue)
 	if new_weights == null:
 		new_weights = evenlyDistributeWeights(key)
+	weights[keyIndex] = new_weights
 
 func get_random_map_value(i):
 	var keyIndex = keys.find(i)

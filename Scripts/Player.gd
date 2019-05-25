@@ -28,10 +28,8 @@ var knockbackStunTimer
 
 var knockbackDirection = Vector3(0, 0, 0)
 
-var jumping
 enum FloorType{Normal, Ice, Sticky, Cracked, None}
 
-var standingOn = []
 var velocity = Vector3()
 
 func knockback(direction):
@@ -120,7 +118,8 @@ func _physics_process(delta):
 			if tile_collided.is_in_group("ice"):
 				velocity.x = clamp(velocity.normalized().x * ice_friction, -speed *1.5, speed*1.5)
 				velocity.z = clamp(velocity.normalized().z * ice_friction, -speed *1.5, speed *1.5)
-			elif tile_collided.is_in_group("cracked"):
+			elif tile_collided.is_in_group("cracked") and not is_connected("crack", tile_collided, "start_cracking"):
+# warning-ignore:return_value_discarded
 				connect("crack", tile_collided, "start_cracking")
 				emit_signal("crack")
 			elif tile_collided.is_in_group("sticky"):

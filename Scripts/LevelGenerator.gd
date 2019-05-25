@@ -45,7 +45,7 @@ func new_level():
 	add_child(level)
 	level.set_translation(Vector3(0, -(wall_height*num_level), 0))
 	level.name = "Level " + str(num_level)
-#	print("\n" +level.name)
+	print("\n" +level.name)
 	var tiles = Spatial.new()
 	tiles.name = "tiles"
 	level.add_child(tiles)
@@ -175,7 +175,7 @@ func createString(key):
 	while(!isKeyFullOfTerminals(key)):
 		key = wrapup(key)
 	
-#	print("key: "+str(key)+", length: "+str(pathLength))
+	print("key: "+str(key)+", length: "+str(pathLength))
 	return key
 
 # once max path length is reached this is called to just make sure that any non-terminal operators
@@ -294,7 +294,7 @@ func buildPath(fullString, parent, width, length):
 			var boxScale = Vector3(0.25, 0.25, 0.25)
 			var can_place = false
 			var path_loc = $PathBuilder.get_translation()
-			while not can_place and is_within_bounds(path_loc.x, path_loc.z, width, length):
+			while not can_place:# and is_within_bounds(path_loc.x, path_loc.z, width, length):
 				if path_loc in spawned_locations:
 					$PathBuilder.translate(dir)
 					path_loc = $PathBuilder.get_translation()
@@ -331,7 +331,7 @@ func buildPath(fullString, parent, width, length):
 					parent.add_child(tile)
 			else:
 				pass
-#				print("couldn't place " + c)
+				print("couldn't place " + c)
 		else:
 			match c:
 				'u':

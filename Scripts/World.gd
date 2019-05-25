@@ -10,6 +10,7 @@ func game_over():
 func _ready():
 	lvlGen = $LevelGenerator
 
+# warning-ignore:unused_argument
 func _process(delta):
 	if ($Player.get_translation().y - lvlGen.top_y) < -(lvlGen.wall_height *2):
 		lvlGen.queue_Delete_One_Add_One()
