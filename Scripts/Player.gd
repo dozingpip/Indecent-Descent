@@ -2,6 +2,7 @@ extends KinematicBody
 
 export(int) var normal_speed = 2
 signal add_point
+signal crack
 var lateral_speed_while_falling = normal_speed/2
 var speed = normal_speed
 
@@ -34,8 +35,8 @@ var standingOn = []
 var velocity = Vector3()
 
 func knockback(direction):
-		knockbackStunTimer = knockbackStunLength
-		knockbackDirection = direction.normalized()
+	knockbackStunTimer = knockbackStunLength
+	knockbackDirection = direction.normalized()
 
 func takeDamage(amount):
 	if(knockbackStunTimer <= 0):
@@ -120,12 +121,8 @@ func _physics_process(delta):
 				velocity.x = clamp(velocity.normalized().x * ice_friction, -speed *1.5, speed*1.5)
 				velocity.z = clamp(velocity.normalized().z * ice_friction, -speed *1.5, speed *1.5)
 			elif tile_collided.is_in_group("cracked"):
-				tile_collided.cracking_timer += delta
-				
-				if tile_collided.cracking_timer > 2:
-					tile_collided.queue_free()
-				elif tile_collided.cracking_timer > 1:
-					tile_collided.set_material("res://Materials/cracked_tile1.tres")
+				connect("crack", tile_collided, "start_cracking")
+				emit_signal("crack")
 			elif tile_collided.is_in_group("sticky"):
 				velocity/=2
 	

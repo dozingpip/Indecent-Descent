@@ -7,6 +7,7 @@ func _init():
 var keys = []
 var values = []
 var weights = []
+
 func append(new_key, new_values, new_weights = null):
 	keys.append(new_key)
 	values.append(new_values)

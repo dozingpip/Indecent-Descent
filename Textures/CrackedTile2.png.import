@@ -3,6 +3,9 @@
 importer="texture"
 type="StreamTexture"
 path="res://.import/CrackedTile2.png-a2cbbb26ef5b504031262d6ebd830fd5.stex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
@@ -14,6 +17,7 @@ dest_files=[ "res://.import/CrackedTile2.png-a2cbbb26ef5b504031262d6ebd830fd5.st
 compress/mode=3
 compress/lossy_quality=0.7
 compress/hdr_mode=0
+compress/bptc_ldr=0
 compress/normal_map=0
 flags/repeat=1
 flags/filter=false
@@ -23,6 +27,7 @@ flags/srgb=1
 process/fix_alpha_border=false
 process/premult_alpha=false
 process/HDR_as_SRGB=false
+process/invert_color=false
 stream=false
 size_limit=0
 detect_3d=false
