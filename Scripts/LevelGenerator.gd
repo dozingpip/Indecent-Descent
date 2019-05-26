@@ -64,76 +64,37 @@ func new_level():
 
 # adds all the keys/ operators in the grammar (with values and weights) to the multimap
 func map_it():
-	var tileTypes = []
-	var tileWeights = []
-	tileTypes.append("n")
-	tileTypes.append("s")
-	tileTypes.append("i")
-	tileTypes.append("c")
-
-	tileWeights.append(0.65)
-	tileWeights.append(0.10)
-	tileWeights.append(0.10)
-	tileWeights.append(0.15)
-	map.append('T', tileTypes, tileWeights)
-
-	var directionOptions = []
-	var directionWeights = []
-	directionOptions.append("u")
-	directionOptions.append("d")
-	directionOptions.append("l")
-	directionOptions.append("r")
-
-	directionWeights.append(0.33)
-	directionWeights.append(0.33)
-	directionWeights.append(0.17)
-	directionWeights.append(0.17)
-	map.append('D', directionOptions, directionWeights)
-
-	var pathOptions = []
-	var pathWeights = []
-	pathOptions.append("KDP")
-	pathOptions.append("KJ")
-	pathOptions.append("KGKDP")
-
-	pathWeights.append(0.4)
-	pathWeights.append(0.3)
-	pathWeights.append(0.3)
-	map.append('P', pathOptions, pathWeights)
-
-	var junctionOptions = []
-	var junctionWeights = []
-	junctionOptions.append("(DP.DP)")
-	junctionOptions.append("(DP.DP.DP)")
-
-	junctionWeights.append(0.5)
-	junctionWeights.append(0.5)
-	map.append('J', junctionOptions, junctionWeights)
-
-	var tileCollectOptions = []
-	var tileCollectWeights = []
-	tileCollectOptions.append("Tx")
-	tileCollectOptions.append("T")
-
-	tileCollectWeights.append(0.05)
-	tileCollectWeights.append(0.95)
-	map.append('K', tileCollectOptions, tileCollectWeights)
-
-	var gapOptions = []
-	var gapWeights = []
-	gapOptions.append("gx")
-	gapOptions.append("g")
-
-	gapWeights.append(0.20)
-	gapWeights.append(0.80)
-	map.append('G', gapOptions, gapWeights)
-
-	var startOptions = []
-	startOptions.append("nDP")
-	map.append('S', startOptions)
-
-
+	map.new_key('T')
+	map.new_value_to_key('T', "n", 0.65)
+	map.new_value_to_key('T', "s", 0.10)
+	map.new_value_to_key('T', "i", 0.10)
+	map.new_value_to_key('T', "c", 0.15)
 	
+	map.new_key('D')
+	map.new_value_to_key('D', "u", 0.33)
+	map.new_value_to_key('D', "d", 0.33)
+	map.new_value_to_key('D', "l", 0.17)
+	map.new_value_to_key('D', "r", 0.17)
+	
+	map.new_key('P')
+	map.new_value_to_key('P', "KDP", 0.4)
+	map.new_value_to_key('P', "KJ", 0.3)
+	map.new_value_to_key('P', "KGKDP", 0.3)
+	
+	map.new_key('J')
+	map.new_value_to_key('J', "(DP.DP)", 0.5)
+	map.new_value_to_key('J', "(DP.DP.DP)", 0.5)
+	
+	map.new_key('K')
+	map.new_value_to_key('K', "Tx", 0.05)
+	map.new_value_to_key('K', "T", 0.95)
+	
+	map.new_key('G')
+	map.new_value_to_key('G', "gx", 0.20)
+	map.new_value_to_key('G', "g", 0.80)
+	
+	map.new_key('S')
+	map.new_value_to_key('S', "nDP", 1.0)
 
 # return a bool based on whether the string has only characters that correspond to terminal
 # operators in the level gen grammar
@@ -164,12 +125,8 @@ func createString(key):
 			elif(c == 'G'):
 				pathLength+=2
 		if(!has_passed_min && pathLength > min_path_length):
-			var newPathWeights = []
-			newPathWeights.append(0.3)
-			newPathWeights.append(0.25)
-			newPathWeights.append(0.25)
-			newPathWeights.append(0.2)
-			map.addNewValueToKey('P', "K", newPathWeights)
+			var newPathWeights = [0.3, 0.25, 0.25, 0.2]
+			map.new_value_to_key('P', "K", 0, newPathWeights)
 			has_passed_min = true
 
 	while(!isKeyFullOfTerminals(key)):
