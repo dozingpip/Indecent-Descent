@@ -1,16 +1,20 @@
 extends KinematicBody
 
-export(int) var normal_speed = 2
+
 signal add_point
 signal crack
+export(int) var normal_speed = 10
 var lateral_speed_while_falling = normal_speed/2
 var speed = normal_speed
 
-var gravity = 10
+var gravity = 3
+
+var terminalVelocity = 13
+var y_velocity = 0
 
 var health = 5
 
-var jump_speed = -4
+var jump_speed = 10
 
 var anim_speed = 0.125
 
@@ -20,8 +24,6 @@ var knockbackSpeed = 0.25
 
 var ice_friction = 4
 
-var terminalVelocity = 7
-
 var anim_timer
 
 var knockbackStunTimer
@@ -29,8 +31,8 @@ var knockbackStunTimer
 var knockbackDirection = Vector3(0, 0, 0)
 
 enum FloorType{Normal, Ice, Sticky, Cracked, None}
-
-var velocity = Vector3()
+#
+#var velocity = Vector3()
 
 func knockback(direction):
 	knockbackStunTimer = knockbackStunLength
@@ -46,71 +48,78 @@ func _ready():
 	anim_timer = anim_speed
 	knockbackStunTimer = 0
 
-func get_input(delta):
-	var jump = Input.is_action_pressed("ui_accept")
-	var left = Input.is_action_pressed("ui_left")
-	var right = Input.is_action_pressed("ui_right")
-	var up = Input.is_action_pressed("ui_up")
-	var down = Input.is_action_pressed("ui_down")
-	
-	if is_on_floor() and jump:
-		velocity.y -= jump_speed
-	
-	if !is_on_floor():
-		speed = lateral_speed_while_falling
-	else:
-		speed = normal_speed
-	
-	if Input.is_action_just_pressed("ui_left"):
-		$Sprite3D.set_frame(2)
-		$Sprite3D.set_flip_h(false)
-	if left:
-		if velocity.x > -terminalVelocity:
-			velocity.x -=speed
-		anim_timer+=delta
-		if(anim_timer>anim_speed):
-			$Sprite3D.set_frame(2 if $Sprite3D.get_frame() == 3 else 3)
-			anim_timer = 0
-	
+func get_input():
+	var input = {}
+	input["jump"] = Input.is_action_pressed("ui_accept")
+	input["left"] = Input.is_action_pressed("ui_left")
+	input["right"] = Input.is_action_pressed("ui_right")
+	input["up"] = Input.is_action_pressed("ui_up")
+	input["down"] = Input.is_action_pressed("ui_down")
+	return input
+
+func animate(input, delta):
 	if Input.is_action_just_pressed("ui_right"):
 		$Sprite3D.set_frame(2)
 		$Sprite3D.set_flip_h(true)
-	
-	if right:
-		if velocity.x < terminalVelocity:
-			velocity.x +=speed
+	if input["right"]:
 		anim_timer+=delta
 		if(anim_timer > anim_speed):
 			$Sprite3D.set_frame(2 if $Sprite3D.get_frame() == 3 else 3)
 			anim_timer = 0
 	
-	if up:
-		if velocity.z > -terminalVelocity:
-			velocity.z -= speed
-		$Sprite3D.set_frame(1)
-		anim_timer+= delta
-		if(anim_timer >= anim_speed):
-			$Sprite3D.set_flip_h(!$Sprite3D.is_flipped_h())
+	if Input.is_action_just_pressed("ui_left"):
+		$Sprite3D.set_frame(2)
+		$Sprite3D.set_flip_h(false)
+	if input["left"]:
+		anim_timer+=delta
+		if(anim_timer>anim_speed):
+			$Sprite3D.set_frame(2 if $Sprite3D.get_frame() == 3 else 3)
 			anim_timer = 0
 	
-	if down:
-		if velocity.z < terminalVelocity:
-			velocity.z += speed
+	if input["down"]:
 		$Sprite3D.set_frame(0)
 		anim_timer+= delta
 		if(anim_timer >= anim_speed):
 			$Sprite3D.set_flip_h(!$Sprite3D.is_flipped_h())
 			anim_timer = 0
 	
-	if !left and !right:
-		velocity.x = 0
-	if !up and !down:
-		velocity.z = 0
+	if input["up"]:
+		$Sprite3D.set_frame(1)
+		anim_timer+= delta
+		if(anim_timer >= anim_speed):
+			$Sprite3D.set_flip_h(!$Sprite3D.is_flipped_h())
+			anim_timer = 0
 
+func calc_velocity(input, delta):
+	var velocity = Vector3()
+	if is_on_floor() and input["jump"]:
+		y_velocity += jump_speed
+		
+	if !is_on_floor():
+		speed = lateral_speed_while_falling
+	else:
+		speed = normal_speed
+	
+	if input["right"]:
+		velocity.x +=speed
+	
+	if input["left"]:
+		velocity.x -=speed
+	
+	if input["down"]:
+		velocity.z += speed
+	
+	if input["up"]:
+		velocity.z -= speed
+	
+	if not is_on_floor() and y_velocity > -terminalVelocity:
+		y_velocity -= gravity
+	return Vector3(velocity.x, y_velocity, velocity.z)
+	
 func _physics_process(delta):
-	if velocity.y > -terminalVelocity:
-		velocity.y -= gravity * delta
-	get_input(delta)
+	var input = get_input()
+	animate(input, delta)
+	var velocity = calc_velocity(input, delta)
 	
 	for i in $Area.get_overlapping_bodies():
 		var tile_collided = i.get_parent()
