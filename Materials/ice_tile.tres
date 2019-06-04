@@ -4,6 +4,7 @@
 
 [resource]
 render_priority = 1
+params_diffuse_mode = 4
 albedo_texture = ExtResource( 1 )
 roughness = 0.0
 uv1_scale = Vector3( 3, 2, 1 )
