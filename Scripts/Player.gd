@@ -1,116 +1,122 @@
 extends KinematicBody
 
-export(int) var normal_speed = 2
+# signals
 signal add_point
 signal crack
+
+# lateral-speed
+export(int) var normal_speed = 10
 var lateral_speed_while_falling = normal_speed/2
 var speed = normal_speed
 
-var gravity = 10
+# falling/ jumping
+var gravity = 3
+var terminal_velocity = 9
+var y_velocity = 0
+var jump_speed = 40
 
 var health = 5
 
-var jump_speed = -4
-
 var anim_speed = 0.125
 
-var knockbackStunLength = 0.1
-
-var knockbackSpeed = 0.25
+# knockback
+var knockback_stun_length = 0.1
+var knockback_speed = 0.25
+var knockback_stun_timer
+var knockback_direction = Vector3(0, 0, 0)
 
 var ice_friction = 4
 
-var terminalVelocity = 7
-
 var anim_timer
-
-var knockbackStunTimer
-
-var knockbackDirection = Vector3(0, 0, 0)
 
 enum FloorType{Normal, Ice, Sticky, Cracked, None}
 
-var velocity = Vector3()
-
 func knockback(direction):
-	knockbackStunTimer = knockbackStunLength
-	knockbackDirection = direction.normalized()
+	knockback_stun_timer = knockback_stun_length
+	knockback_direction = direction.normalized()
 
-func takeDamage(amount):
-	if(knockbackStunTimer <= 0):
+func take_damage(amount):
+	if(knockback_stun_timer <= 0):
 		health -= amount
 		if (health <= 0):
 			get_tree().get_node("World").game_over()
 
 func _ready():
 	anim_timer = anim_speed
-	knockbackStunTimer = 0
+	knockback_stun_timer = 0
 
-func get_input(delta):
-	var jump = Input.is_action_pressed("ui_accept")
-	var left = Input.is_action_pressed("ui_left")
-	var right = Input.is_action_pressed("ui_right")
-	var up = Input.is_action_pressed("ui_up")
-	var down = Input.is_action_pressed("ui_down")
-	
-	if is_on_floor() and jump:
-		velocity.y -= jump_speed
-	
-	if !is_on_floor():
-		speed = lateral_speed_while_falling
-	else:
-		speed = normal_speed
-	
-	if Input.is_action_just_pressed("ui_left"):
-		$Sprite3D.set_frame(2)
-		$Sprite3D.set_flip_h(false)
-	if left:
-		if velocity.x > -terminalVelocity:
-			velocity.x -=speed
-		anim_timer+=delta
-		if(anim_timer>anim_speed):
-			$Sprite3D.set_frame(2 if $Sprite3D.get_frame() == 3 else 3)
-			anim_timer = 0
-	
+func get_input():
+	var input = {}
+	input["jump"] = Input.is_action_pressed("ui_accept")
+	input["left"] = Input.is_action_pressed("ui_left")
+	input["right"] = Input.is_action_pressed("ui_right")
+	input["up"] = Input.is_action_pressed("ui_up")
+	input["down"] = Input.is_action_pressed("ui_down")
+	return input
+
+func animate(input, delta):
 	if Input.is_action_just_pressed("ui_right"):
 		$Sprite3D.set_frame(2)
 		$Sprite3D.set_flip_h(true)
-	
-	if right:
-		if velocity.x < terminalVelocity:
-			velocity.x +=speed
+	if input["right"]:
 		anim_timer+=delta
 		if(anim_timer > anim_speed):
 			$Sprite3D.set_frame(2 if $Sprite3D.get_frame() == 3 else 3)
 			anim_timer = 0
 	
-	if up:
-		if velocity.z > -terminalVelocity:
-			velocity.z -= speed
-		$Sprite3D.set_frame(1)
-		anim_timer+= delta
-		if(anim_timer >= anim_speed):
-			$Sprite3D.set_flip_h(!$Sprite3D.is_flipped_h())
+	if Input.is_action_just_pressed("ui_left"):
+		$Sprite3D.set_frame(2)
+		$Sprite3D.set_flip_h(false)
+	if input["left"]:
+		anim_timer+=delta
+		if(anim_timer>anim_speed):
+			$Sprite3D.set_frame(2 if $Sprite3D.get_frame() == 3 else 3)
 			anim_timer = 0
 	
-	if down:
-		if velocity.z < terminalVelocity:
-			velocity.z += speed
+	if input["down"]:
 		$Sprite3D.set_frame(0)
 		anim_timer+= delta
 		if(anim_timer >= anim_speed):
 			$Sprite3D.set_flip_h(!$Sprite3D.is_flipped_h())
 			anim_timer = 0
 	
-	if !left and !right:
-		velocity.x = 0
-	if !up and !down:
-		velocity.z = 0
+	if input["up"]:
+		$Sprite3D.set_frame(1)
+		anim_timer+= delta
+		if(anim_timer >= anim_speed):
+			$Sprite3D.set_flip_h(!$Sprite3D.is_flipped_h())
+			anim_timer = 0
 
+func calc_velocity(input):
+	var velocity = Vector3()
+	if is_on_floor() and input["jump"]:
+		y_velocity += jump_speed
+		
+	if !is_on_floor():
+		speed = lateral_speed_while_falling
+	else:
+		speed = normal_speed
+	
+	if input["right"]:
+		velocity.x +=speed
+	
+	if input["left"]:
+		velocity.x -=speed
+	
+	if input["down"]:
+		velocity.z += speed
+	
+	if input["up"]:
+		velocity.z -= speed
+	
+	if not is_on_floor() and y_velocity > -terminal_velocity:
+		y_velocity -= gravity
+	return Vector3(velocity.x, y_velocity, velocity.z)
+	
 func _physics_process(delta):
-	if velocity.y > -terminalVelocity:
-		velocity.y -= gravity * delta
-	get_input(delta)
+	var input = get_input()
+	animate(input, delta)
+	var velocity = calc_velocity(input)
 	
 	for i in $Area.get_overlapping_bodies():
 		var tile_collided = i.get_parent()
@@ -130,8 +136,8 @@ func _physics_process(delta):
 			emit_signal("add_point")
 			i.get_parent().queue_free()
 	
-	if (knockbackStunTimer > 0):
-		translation += knockbackDirection * knockbackSpeed
-		knockbackStunTimer -= delta
+	if (knockback_stun_timer > 0):
+		translation += knockback_direction * knockback_speed
+		knockback_stun_timer -= delta
 	else:
 		velocity = move_and_slide(velocity, Vector3(0, 1, 0))
